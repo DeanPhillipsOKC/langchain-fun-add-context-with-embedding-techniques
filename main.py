@@ -1,41 +1,14 @@
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import HumanMessagePromptTemplate, ChatPromptTemplate, MessagesPlaceholder
-from langchain.memory import ConversationSummaryMemory, FileChatMessageHistory
 from dotenv import load_dotenv
+
+# A loader can open file(s) from a source and create a document
+#   documents  
+#       page_content: <contents of file>
+#       metadata: ("source": "facts.txt")
+from langchain.document_loaders import TextLoader
 
 load_dotenv()
 
-chat=ChatOpenAI()
+loader = TextLoader("facts.txt")
+docs = loader.load()
 
-memory=ConversationSummaryMemory(
-    memory_key="messages", 
-    return_messages=True,
-    llm=chat,
-    #FileChatMessageHistory does not work with CovnersationSummaryMemory.  You need one or the other
-    #chat_memory=FileChatMessageHistory("messages.json")
-)
-
-prompt = ChatPromptTemplate(
-    input_variables=["content", "messages"],
-    messages=[
-        MessagesPlaceholder(variable_name="messages"),
-        HumanMessagePromptTemplate.from_template("{content}")
-    ]
-)
-
-chain=LLMChain(
-    llm=chat,
-    prompt=prompt,
-    memory=memory,
-    verbose=True
-)
-
-while True:
-    content = input(">> ")
-
-    result = chain({
-        "content": content
-    })
-
-    print(result["text"])
+print(docs)

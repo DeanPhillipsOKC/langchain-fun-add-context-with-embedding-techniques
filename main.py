@@ -6,8 +6,15 @@ from dotenv import load_dotenv
 #       metadata: ("source": "facts.txt")
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
 
 load_dotenv()
+
+embeddings = OpenAIEmbeddings()
+
+emb = embeddings.embed_query("hi there")
+
+print(emb)
 
 text_splitter = CharacterTextSplitter(
     separator="\n",

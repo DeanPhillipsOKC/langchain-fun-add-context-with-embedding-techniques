@@ -2,7 +2,11 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
+from redundant_filter_retriever import RedundantFilterRetriever
 from dotenv import load_dotenv
+import langchain
+
+langchain.debug = True
 
 load_dotenv()
 
@@ -20,7 +24,10 @@ db = Chroma(
 #
 # In this case db has a similarity_search method.  When it is converted to a retriever it has a get_relevant_documents method that just calls
 # similarity_search.
-retriever = db.as_retriever()
+retriever = RedundantFilterRetriever(
+    embeddings=embeddings,
+    chroma=db
+)
 
 chain = RetrievalQA.from_chain_type(
     llm=chat,

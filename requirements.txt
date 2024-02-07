@@ -40,6 +40,7 @@ langchain-community==0.0.10
 langchain-core==0.1.8
 langsmith==0.0.78
 marshmallow==3.20.1
+matplotlib
 mmh3==4.1.0
 monotonic==1.6
 mpmath==1.3.0

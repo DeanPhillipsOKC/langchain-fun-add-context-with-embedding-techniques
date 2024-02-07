@@ -1,0 +1,48 @@
+from langchain.vectorstores.chroma import Chroma
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from dotenv import load_dotenv
+
+# Tells langchain to print out all intermediate stuff so we can see what is going on with the prompts
+import langchain
+langchain.debug = True
+
+load_dotenv()
+
+chat = ChatOpenAI()
+
+embeddings = OpenAIEmbeddings()
+
+db = Chroma(
+    persist_directory="emb",
+    embedding_function=embeddings
+)
+
+# In LangChain a retriever is anything that has a method called "get_relevant_docuements" that takes a string
+# and returns documents.
+#
+# In this case db has a similarity_search method.  When it is converted to a retriever it has a get_relevant_documents method that just calls
+# similarity_search.
+retriever = db.as_retriever()
+
+chain = RetrievalQA.from_chain_type(
+    llm=chat,
+    retriever=retriever,
+    # Here's how the map_rerank chain type works...
+    # 1. We get 4 documents from our vector store
+    # 2. For each document, a prompt like this is sent to the LLM
+    #   System: Use the following pieces of context to answer the question at the end.  In additon to giving an answer, also return a score of how fully 
+    #   it answerd the user's question.
+    #           {content}
+    #   User: Here is the user's question: {question}
+    # 3. NOTE: Sometimes the document might not really be relevant to the question so Chat GPT might make up an answer based off of its training data
+    # 4. Finally it will pick an answer with the highest score
+    # 5. NOTE: Sometimes it will give a made up fact a score of 100.  Sometimes it will rank it 0. Sometimes instead of making up a fact it will say it
+    #           does not have a relevant answer and will give it a score of zero.
+    chain_type="map_rerank"
+)
+
+result = chain.run("What is an interesting fact about the English language?")
+
+print(result)
